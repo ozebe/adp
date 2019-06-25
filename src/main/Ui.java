@@ -196,13 +196,17 @@ public class Ui extends javax.swing.JFrame {
             h = new Converter(conteudo, "hora", "data", true, true);
             p = new Converter(conteudo, "pressao", false);
         }
+        try {
+            JFreeChart chart = Generate.createChart(Generate.createDataset());
+            ChartFrame chartFrm = new ChartFrame("Dados", chart, true);
+            chartFrm.setVisible(true);
+            chartFrm.setSize(1000, 700);
+        } catch (org.jfree.data.general.SeriesException e) {
+            System.out.println(""+e);
+            error01Transparent32px("The series already contains an observation for that time period.\nDuplicates are not permitted.", "Error");
+        }
 
-        JFreeChart chart = Generate.createChart(Generate.createDataset());
 
-        ChartFrame chartFrm = new ChartFrame("Dados", chart, true);
-
-        chartFrm.setVisible(true);
-        chartFrm.setSize(1000, 700);
     }//GEN-LAST:event_generateActionPerformed
 
     private void openActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openActionPerformed
