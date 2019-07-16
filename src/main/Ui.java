@@ -1,21 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
 
+import com.bulenkov.darcula.DarculaLaf;
 import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
-import org.jfree.chart.ChartFrame;
-import org.jfree.chart.JFreeChart;
+import javax.swing.JOptionPane;
+import javax.swing.plaf.basic.BasicLookAndFeel;
+import org.jfree.ui.RefineryUtilities;
 import static out.transparent.error.ErrorOutJOptions.error01Transparent32px;
 
 /**
@@ -25,16 +20,32 @@ import static out.transparent.error.ErrorOutJOptions.error01Transparent32px;
 public class Ui extends javax.swing.JFrame {
 
     public static String conteudo;
-    public static Converter t;
-    public static Converter p;
-    public static Converter h;
-    public static Converter d;
+    public static StrToJFree t;
+    public static StrToJFree p;
+    public static StrToJFree h;
+    public static StrToJFree d;
 
     /**
      * Creates new form Ui
      */
     public Ui() {
         initComponents();
+    }
+
+    class MyCustomFilter extends javax.swing.filechooser.FileFilter {
+
+        @Override
+        public boolean accept(File file) {
+            //apenas diretórios e arquivos com extensão .txt
+            return file.isDirectory() || file.getAbsolutePath().endsWith(".txt");
+        }
+
+        @Override
+        public String getDescription() {
+            // This description will be displayed in the dialog,
+            // hard-coded = ugly, should be done via I18N
+            return "Documentos de texto (*.txt)";
+        }
     }
 
     /**
@@ -47,6 +58,7 @@ public class Ui extends javax.swing.JFrame {
     private void initComponents() {
 
         fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setFileFilter(new MyCustomFilter());
         generate = new javax.swing.JButton();
         open = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -54,15 +66,21 @@ public class Ui extends javax.swing.JFrame {
         barraProgresso = new javax.swing.JProgressBar();
         status = new javax.swing.JLabel();
         separador0 = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
         separador1 = new javax.swing.JTextField();
         separador2 = new javax.swing.JTextField();
-        radioButton01 = new javax.swing.JRadioButton();
-        radioButton02 = new javax.swing.JRadioButton();
-        radioButton03 = new javax.swing.JRadioButton();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
+        tpData = new javax.swing.JRadioButton();
+        tData = new javax.swing.JRadioButton();
+        pData = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Arduino Data Plotter V1.2");
+        setResizable(false);
 
+        generate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/main/img/bar-graph-on-a-rectangle.png"))); // NOI18N
         generate.setText("Gerar Gráfico");
         generate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -70,6 +88,7 @@ public class Ui extends javax.swing.JFrame {
             }
         });
 
+        open.setIcon(new javax.swing.ImageIcon(getClass().getResource("/main/img/open-folder-outline.png"))); // NOI18N
         open.setText("Abrir arquivo");
         open.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -77,44 +96,97 @@ public class Ui extends javax.swing.JFrame {
             }
         });
 
+        textArea.setEditable(false);
         textArea.setColumns(20);
         textArea.setRows(5);
         jScrollPane1.setViewportView(textArea);
 
         barraProgresso.setFocusable(false);
 
-        jLabel1.setText("Separar por:");
-
-        radioButton01.setText("Temperatura / Data / Pressão");
-        radioButton01.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButton01ActionPerformed(evt);
+        jLabel2.setText("By Ozebe");
+        jLabel2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel2MouseClicked(evt);
             }
         });
 
-        radioButton02.setText("Temperatura / Data");
-        radioButton02.addChangeListener(new javax.swing.event.ChangeListener() {
+        jLabel3.setText("Powered by JFree");
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Gráfico"));
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Separar por"));
+
+        tpData.setText("Temp / Pres / Data");
+        tpData.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tpDataActionPerformed(evt);
+            }
+        });
+
+        tData.setSelected(true);
+        tData.setText("Temp / Data");
+        tData.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                radioButton02StateChanged(evt);
+                tDataStateChanged(evt);
             }
         });
-        radioButton02.addActionListener(new java.awt.event.ActionListener() {
+        tData.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButton02ActionPerformed(evt);
+                tDataActionPerformed(evt);
             }
         });
 
-        radioButton03.setText("Pressão / Data");
-        radioButton03.addChangeListener(new javax.swing.event.ChangeListener() {
+        pData.setText("Pres / Data");
+        pData.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                radioButton03StateChanged(evt);
+                pDataStateChanged(evt);
             }
         });
-        radioButton03.addActionListener(new java.awt.event.ActionListener() {
+        pData.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButton03ActionPerformed(evt);
+                pDataActionPerformed(evt);
             }
         });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tpData)
+                    .addComponent(tData)
+                    .addComponent(pData))
+                .addContainerGap(49, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(tpData)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tData)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(pData)
+                .addContainerGap())
+        );
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(174, 174, 174))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(22, 22, 22))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -123,87 +195,91 @@ public class Ui extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addComponent(generate)
-                        .addGap(18, 18, 18)
+                        .addGap(30, 30, 30)
                         .addComponent(open)
-                        .addGap(16, 16, 16)
-                        .addComponent(status, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
+                        .addGap(61, 61, 61)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(radioButton03)
-                            .addComponent(jLabel1)
-                            .addComponent(radioButton01)
-                            .addComponent(radioButton02)))
+                            .addComponent(generate)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(90, 90, 90)
+                                .addComponent(status, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(barraProgresso, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 388, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(10, 10, 10)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(separador0, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(separador1, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(separador2, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(36, 36, 36))
+                        .addGap(10, 10, 10)
+                        .addComponent(barraProgresso, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jLabel3)
+                        .addGap(228, 228, 228)
+                        .addComponent(jLabel2))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(separador0, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(separador1, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(27, 27, 27)
+                                .addComponent(separador2, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 388, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(6, 6, 6))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(6, 6, 6)
+                .addGap(10, 10, 10)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(generate)
                     .addComponent(open)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(4, 4, 4)
-                        .addComponent(status, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(generate)
+                    .addComponent(status, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(12, 12, 12)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButton01)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButton02)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(radioButton03)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(separador0, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(separador1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(separador2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(separador2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separador0, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(8, 8, 8)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(2, 2, 2)
                 .addComponent(barraProgresso, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(10, 10, 10)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel2)))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void generateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generateActionPerformed
-        if (radioButton02.isSelected()) {
-            t = new Converter(conteudo, "temperatura", false);
-            h = new Converter(conteudo, "hora", "data", true, true);
-
-        } else if (radioButton01.isSelected()) {
-            t = new Converter(conteudo, "temperatura", false);
-            h = new Converter(conteudo, "hora", "data", true, true);
-            p = new Converter(conteudo, "pressao", false);
-        } else if (radioButton03.isSelected()) {
-            h = new Converter(conteudo, "hora", "data", true, true);
-            p = new Converter(conteudo, "pressao", false);
-        }
         try {
-            JFreeChart chart = Generate.createChart(Generate.createDataset());
-            ChartFrame chartFrm = new ChartFrame("Dados", chart, true);
-            chartFrm.setVisible(true);
-            chartFrm.setSize(1000, 700);
-        } catch (org.jfree.data.general.SeriesException e) {
-            System.out.println(""+e);
-            error01Transparent32px("The series already contains an observation for that time period.\nDuplicates are not permitted.", "Error");
+            if (tData.isSelected()) {
+                t = new StrToJFree.Builder(conteudo, "temperatura").converter().build();
+                h = new StrToJFree.Builder(conteudo, "hora").converterMinutos().build();
+
+            } else if (tpData.isSelected()) {
+                t = new StrToJFree.Builder(conteudo, "temperatura").converter().build();
+                h = new StrToJFree.Builder(conteudo, "hora").converterMinutos().build();
+                p = new StrToJFree.Builder(conteudo, "pressao").converter().build();
+            } else if (pData.isSelected()) {
+                h = new StrToJFree.Builder(conteudo, "hora").converterMinutos().build();
+                p = new StrToJFree.Builder(conteudo, "pressao").converter().build();
+            }
+            try {
+                Axis adp = new Axis("Arduino data plotter");
+                adp.pack();
+                RefineryUtilities.centerFrameOnScreen(adp);
+                adp.setVisible(true);
+
+            } catch (org.jfree.data.general.SeriesException e) {
+                System.out.println("" + e);
+                error01Transparent32px("The series already contains an observation for that time period.\nDuplicates are not permitted.", "Error");
+            }
+        } catch (java.lang.NullPointerException a) {
+            error01Transparent32px("Dados não carregados, não é possível gerar os gráficos", "Erro");
         }
 
 
@@ -216,82 +292,67 @@ public class Ui extends javax.swing.JFrame {
             try {
                 textArea.read(new FileReader(file.getAbsolutePath()), null);
                 conteudo = FileUtils.readFileToString(file, "UTF-8");
-
-                //int janelaProcessamento = 4;
-                //ScheduledExecutorService executor = Executors.newScheduledThreadPool(janelaProcessamento);
-                // executor.execute(new FileProcessor());
             } catch (NumberFormatException e) {
                 error01Transparent32px("Arquivo inválido carregado" + "\n" + file.getAbsolutePath(), "Erro");
-                // JOptionPane.showMessageDialog(null, "Arquivo inválido carregado" + "\n" +file.getAbsolutePath(), "Erro", JOptionPane.ERROR_MESSAGE, erroIcone);
-                // mostrarValoresOrdenados.setText("Arquivo inválido carregado");
+
                 textArea.setText("Arquivo inválido carregado");
             } catch (IOException ex) {
-                // Logger.getLogger(OrdenacaoUI.class.getName()).log(Level.SEVERE, null, ex);
+                error01Transparent32px("Erro desconhecido", "Erro");
             }
             // JOptionPane.showMessageDialog(null, "Nenhum arquivo carregado" + file.getAbsolutePath(), "Erro", JOptionPane.ERROR_MESSAGE, erroIcone);
 
         } else {
             error01Transparent32px("Nenhum arquivo carregado", "Erro");
-            //  JOptionPane.showMessageDialog(null, "Nenhum arquivo carregado", "Erro", JOptionPane.ERROR_MESSAGE, erroIcone);
-
         }
     }//GEN-LAST:event_openActionPerformed
 
-    private void radioButton01ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButton01ActionPerformed
-        radioButton02.setSelected(false);
-        radioButton03.setSelected(false);
+    private void tpDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tpDataActionPerformed
+        tData.setSelected(false);
+        pData.setSelected(false);
 
         separador0.setText("temperatura");
         separador1.setText("hora");
         separador2.setText("pressao");
-    }//GEN-LAST:event_radioButton01ActionPerformed
+    }//GEN-LAST:event_tpDataActionPerformed
 
-    private void radioButton02ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButton02ActionPerformed
-        radioButton01.setSelected(false);
-        radioButton03.setSelected(false);
+    private void tDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tDataActionPerformed
+        tpData.setSelected(false);
+        pData.setSelected(false);
         separador0.setText("temperatura");
         separador1.setText("hora");
         separador2.setText("");
-    }//GEN-LAST:event_radioButton02ActionPerformed
+    }//GEN-LAST:event_tDataActionPerformed
 
-    private void radioButton02StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_radioButton02StateChanged
+    private void tDataStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tDataStateChanged
 
-    }//GEN-LAST:event_radioButton02StateChanged
+    }//GEN-LAST:event_tDataStateChanged
 
-    private void radioButton03StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_radioButton03StateChanged
+    private void pDataStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_pDataStateChanged
         // TODO add your handling code here:
-    }//GEN-LAST:event_radioButton03StateChanged
+    }//GEN-LAST:event_pDataStateChanged
 
-    private void radioButton03ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButton03ActionPerformed
-        radioButton01.setSelected(false);
-        radioButton02.setSelected(false);
+    private void pDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pDataActionPerformed
+        tpData.setSelected(false);
+        tData.setSelected(false);
         separador0.setText("pressão");
         separador1.setText("hora");
         separador2.setText("");
-    }//GEN-LAST:event_radioButton03ActionPerformed
+    }//GEN-LAST:event_pDataActionPerformed
+
+    private void jLabel2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel2MouseClicked
+        JOptionPane.showMessageDialog(null, "Graphics made by JFree\nIcons made by Dave Gandy\nStrToJFree made by Ozebe", "About Arduino Data Plotter V1.2", JOptionPane.INFORMATION_MESSAGE);
+
+    }//GEN-LAST:event_jLabel2MouseClicked
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
+                BasicLookAndFeel darcula = new DarculaLaf();
+                javax.swing.UIManager.setLookAndFeel(darcula);
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Ui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Ui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Ui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Ui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
@@ -301,6 +362,7 @@ public class Ui extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Ui().setVisible(true);
+                barraProgresso.setVisible(false);
             }
         });
     }
@@ -309,16 +371,19 @@ public class Ui extends javax.swing.JFrame {
     public static javax.swing.JProgressBar barraProgresso;
     public static javax.swing.JFileChooser fileChooser;
     private javax.swing.JButton generate;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     public static javax.swing.JButton open;
-    public static javax.swing.JRadioButton radioButton01;
-    public static javax.swing.JRadioButton radioButton02;
-    public static javax.swing.JRadioButton radioButton03;
+    public static javax.swing.JRadioButton pData;
     public static javax.swing.JTextField separador0;
     public static javax.swing.JTextField separador1;
     public static javax.swing.JTextField separador2;
     public static javax.swing.JLabel status;
+    public static javax.swing.JRadioButton tData;
     public static javax.swing.JTextArea textArea;
+    public static javax.swing.JRadioButton tpData;
     // End of variables declaration//GEN-END:variables
 }
